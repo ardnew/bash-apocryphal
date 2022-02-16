@@ -10,7 +10,7 @@ Most scripts accept both forms of input, as either command-line arguments or rea
 |File|Description|
 |:--:|:----------|
 |[`escape`](bin/escape)|`escape` prints the given arguments in a quoted format that can be reused as input to other bash commands.|
-|[`fprintf`](bin/fprintf)|`fprintf` is identical to printf, except the first argument is a filepath to write to (append to file with flag -a). Useful when file redirection gets tricky (e.g., `xargs`, `find -exec`, etc.)|
+|[`fprintf`](bin/fprintf)|`fprintf` is identical to printf, except the first argument is a filepath to write to (append to file with flag `-a`). Useful when file redirection can be tricky or cumbersome (e.g., `xargs`, `find -exec`, etc.)|
 |[`joinstr`](bin/joinstr)|`joinstr` prints all arguments following the first, delimited by the first. Nothing is printed if fewer than 2 arguments are given, and only the second argument is printed if exactly 2 are given.|
 |[`prepath`](bin/prepath)|`prepath` echoes the colon-delimited path variable with given name, prepended with each path in the given colon-delimited list(s) of paths, removing each from its original location if it existed. Used to change the priority of directories in a path list.|
 |[`relpath`](bin/relpath)|`relpath` constructs a relative path from the first argument to the second. If only one path is given, the first argument is assumed to be `$PWD`.|
