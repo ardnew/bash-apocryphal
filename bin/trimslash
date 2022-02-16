@@ -1,0 +1,20 @@
+#!/bin/bash
+# trimslash removes all trailing slashes from each of the given input strings,
+# unless the remaining trailing slash is also the leading slash (i.e., "/").
+# Input can be provided as paths or colon-delimited path lists, as either
+# argument(s) or read from stdin.
+ts() { 
+	for s; do 
+		while read -re t; do
+			sed -E 's://*:/:g; s:(^/)?/*$:\1:' <<< "$t"
+		done < <( tr ':' '\n' <<< "$s" )
+	done
+}
+if [[ $# -gt 0 ]]; then
+	ts "$@"
+else
+	while read -re s; do
+		ts "$s"
+	done
+fi
+

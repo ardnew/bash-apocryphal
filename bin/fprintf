@@ -1,0 +1,26 @@
+#!/bin/bash
+
+declare append
+
+while [[ $# -gt 0 ]]; do
+	case "$1" in
+		-a) append=1 ;;
+		*) break ;;
+	esac
+	shift
+done
+
+if [[ $# -gt 1 ]]; then
+	output=$1
+	format=$2
+	if [[ -n $append ]]; then
+		printf -- "$format" "${@:3}" >> "$output"
+	else
+		printf -- "$format" "${@:3}" > "$output"
+	fi
+else
+	cat <<__usage__
+usage:
+  ${0##*/} [-a] file format [argument ...]
+__usage__
+fi

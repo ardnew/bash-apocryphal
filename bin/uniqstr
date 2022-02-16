@@ -1,0 +1,38 @@
+#!/usr/bin/env perl
+# ------------------------------------------------------------------------------
+#  uniqstr prints each unique string in the given input. Input may be provided
+#  as arguments (delimited per argument, not per word in each argument), path
+#  to a readable file, or via stdin (e.g., pipe, file redirect, etc.). In the
+#  latter two cases (file and stdin), strings are delimited per line.
+#
+#  Output is delimited with '\n' by default. If flag -0 is given, output is
+#  delimited with a NULL byte '\0'. If flag -d is given, its argument is used
+#  as delimiter.
+# ------------------------------------------------------------------------------
+use strict;
+use warnings;
+
+use Getopt::Std;
+
+our ($opt_0, $opt_d);
+
+getopts('0d:') or die;
+
+sub add ($) { s/[\r\n]+$//sg; $_{$_} ||= $. }
+
+if (@ARGV == 0 or -r $ARGV[0]) {
+  add $_ while <>
+} else {
+  ++$., add $_ for @ARGV
+}
+
+if (defined $opt_0) {
+  $" = chr(0)
+} elsif (defined $opt_d) {
+  $" = $opt_d
+} else {
+  $" = "\n"
+}
+
+@_ = sort { $_{$a} <=> $_{$b} } keys %_;
+print "@_"

@@ -1,0 +1,20 @@
+#!/bin/bash
+# prepath echoes the colon-delimited path env var with given name, prepended
+# with each path in the given colon-delimited list(s) of paths. If a path in the
+# given list already exists in the env var path, then it is removed from its
+# position in the env var, and prepended to the resulting list.
+[[ ${#} -gt 1 ]] || exit
+# construct a colon-delimited path list from all trailing args
+declare -a trim
+while read -re t; do
+	trim+=( "${t}" )
+done < <( trimslash "${@:2}" )
+export pre=$( joinstr ':' "${trim[@]}" )
+# remove all paths in pre from the given env var
+declare -a base
+while read -re b; do
+	base+=( "${b}" )
+done < <( uniqpath pre "${!1}" )
+# prepend the colon delimited paths to the filtered env var
+joinstr ':' "${pre}" "${base[@]}"
+

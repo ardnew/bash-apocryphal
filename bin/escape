@@ -1,0 +1,17 @@
+#!/bin/bash
+# escape prints the given arguments in a quoted format that can be reused as
+# input to other bash commands.
+if [[ $# -gt 0 ]]; then
+	if [[ -f "${1}" ]] && [[ -r "${1}" ]]; then
+		for v in "${@}"; do
+			[[ -e "${v}" ]] && 
+				printf -- '%q\n' "$( cat "${v}" )"
+		done
+	else
+		for v in "${@}"; do
+			printf -- '%q\n' "${v}"
+		done
+	fi
+else
+	printf -- '%q\n' "$( cat - )"
+fi

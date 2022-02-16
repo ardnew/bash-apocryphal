@@ -1,0 +1,9 @@
+#!/bin/bash
+# trim prints the given input string with all leading and trailing whitespace
+# removed. All arguments are joined together with a single space, and the result
+# is trimmed as a single string. Input can also be provided via stdin.
+var="$*"
+(( $# )) || read -re var
+var="${var#"${var%%[![:space:]]*}"}"
+var="${var%"${var##*[![:space:]]}"}"
+printf '%s' "$var"

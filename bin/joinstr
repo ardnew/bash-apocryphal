@@ -1,0 +1,6 @@
+#!/bin/bash
+# joinstr prints all arguments following the first, delimited by the first.
+# Nothing is printed if fewer than 2 arguments are given, and only the second
+# argument is printed if exactly 2 are given.
+d=${1-} f=${2-}
+shift 2 && printf %s "$f" "${@/#/$d}"

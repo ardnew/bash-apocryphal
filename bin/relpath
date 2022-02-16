@@ -1,0 +1,13 @@
+#!/bin/bash
+# relpath constructs a relative path from the first argument to the second.
+# if only one path is given, the first argument is assumed to be PWD.
+pl=( perl -MFile::Spec::Functions=abs2rel )
+if [[ $# -gt 1 ]]; then
+	src=${1}
+	dst=${2}
+else
+  unset -v src
+	dst=${1}
+fi
+[[ -n ${dst} ]] && 
+	"${pl[@]}" -le 'print abs2rel(@ARGV)' "${dst}" "${src}"

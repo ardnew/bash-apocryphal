@@ -1,0 +1,11 @@
+#!/bin/bash
+# uniqpath echoes each path from the given colon-delimited list(s) of paths
+# which does not already exist in the path env var with the given name.
+# Example - print each given bin path not already in $PATH:
+#   uniqpath PATH /usr/local/bin ${HOME}/.bin:${HOME}/.local/bin
+[[ ${#} -gt 1 ]] || exit
+for arg in "${@:2}"; do
+	while read -re path; do
+		[[ ":${!1}:" == *":${path}:"* ]] || echo "${path}"
+	done < <( trimslash "${arg}" )
+done
