@@ -1,0 +1,16 @@
+#!/bin/bash
+# chkvar verifies a variable with given identifier is defined AND that it does
+# not have a "false-like" value, defined as being exactly one of the following
+# (possibly surrounded by whitespace):
+#
+#  - the empty string ""
+#  - "false" (case-insensitive)
+#  - 1 or more zeroes ("0", "00", "000", etc.)
+#
+# Input is provided by variable identifier instead of by value. For example:
+#
+#  - chkvar REPLY        <- ok!
+#  - chkvar $REPLY       <- WRONG
+
+[ $# -gt 0 ] && declare -n var=$1 && test $var &&
+  command grep -qviP '^\s*(false|0+)?\s*$' <<< "$var"

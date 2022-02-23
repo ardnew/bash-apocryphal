@@ -1,0 +1,38 @@
+#!/bin/bash
+# touchuniq prints the given file path appended with an increasing numeric
+# suffix such that no file exists at that path.
+# For example, if touchuniq is called with the same argument "foo/bar.ext" three
+# times in a row, and a new file is created each time, then there would be three
+# files named "foo/bar.ext", "foo/bar~1.ext", and "foo/bar~2.ext".
+# The delimiter between file name and numeric suffix "~" can be overridden by
+# setting environment variable UFS.
+if [[ $# -gt 0 ]]; then
+	# trimslash provided in same package as touchuniq
+	clean=$( trimslash "$1" )
+
+	# save the path to our target directory
+	path="."
+	[[ $clean == */* ]] &&
+		path=$( trimslash "${clean%/*}" ) # remove file name
+
+	file=${clean##*/}  # file name
+	base=${file%.*}    # base name
+	extn=${file#$base} # file extension
+
+	# set UFS unless it is defined (defined includes the empty string)
+	[[ -n ${UFS+?} ]] || UFS='~'
+
+	escu=$( perl -pe'chomp;$_=quotemeta' <<< "$UFS" )
+	escn=$( perl -pe'chomp;$_=quotemeta' <<< "$extn" )
+
+	# remove any possible numeric suffix
+	base=$( sed -E 's/'"$escu"'[0-9]*$//' <<< "$base" )
+ 
+	# find greatest numeric suffix among all files matching our base name and file
+	# extension. (escape provided in same package as touchuniq)
+	high=$( command ls -1 "${path}/${base}"{,$( escape "${UFS:-\\}" )}*"${extn}" 2>/dev/null |
+		command sed -E 's/'"$escn"'$//' | command grep -oP "$escu"'\K[0-9]*$' |
+			sort -n | tail -1 )
+
+	printf -- '%s/%s%s%d%s' "$path" "$base" "$UFS" "$(( high + 1 ))" "$extn"
+fi

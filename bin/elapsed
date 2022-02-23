@@ -1,0 +1,15 @@
+#!/bin/bash
+# elapsed formats the given number of seconds using the given date-time format.
+# If no date-time format is given, uses a default format with template:
+#  - D days H hrs M min S sec         <- D > 0
+#  - H hrs M min S sec                <- D = 0
+if [[ $# -gt 0 ]] && [[ $1 =~ ^[0-9]+$ ]]; then
+  epoch="1970-01-01 + $1 seconds"
+  if [[ $# -gt 1 ]]; then
+    date -d "$epoch" "+$2"
+  else
+  	[[ $1 -gt 86400 ]] && # seconds in a day
+	  	printf "%d days " $(( $1 / 86400 ))
+  	date -d "$epoch" "+%H hrs %M min %S sec"
+  fi
+fi

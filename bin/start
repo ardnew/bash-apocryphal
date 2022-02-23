@@ -1,0 +1,164 @@
+#!/bin/bash
+
+exit_usehlp="( exit 0   )"  # ok    :show help on available CLI flags
+exit_forked="( exit 0   )"  # ok    :executable launched in background
+exit_noexec="( exit 127 )"  # error :command is missing
+
+append=">"                  # overwrite by default
+noexec="echo"               # dont actually run, echo commands to be executed
+setopt="ex"                 # trace flags given to shell's set command
+strace="strace"             # run under strace
+sigmsk="nohup"              # run under nohup, ignoring SIGINT/SIGHUP/etc.
+silent="&>/dev/null"        # hide all output and errors
+jobctl="& ${exit_forked}"   # run as a background job
+
+usage() {
+	printf -- 'run command as a background job\n'
+	printf -- 'usage:\n'
+	printf -- '\t%s [-adfstTv] [-l LOG] [-c DIR] CMD [-- [ARGS]]\n' "$( basename "$0" )"
+	printf -- '\t%s -h\n' "$( basename "$0" )"
+	printf -- '\n'
+	printf -- '\t-a      - append: append to log file instead of overwriting\n'
+	printf -- '\t-c DIR  - chdir: change dir to DIR before running CMD\n'
+	printf -- '\t-d      - dry-run: echo commands to be run\n'
+	printf -- '\t-f      - foreground: launch CMD as a foreground job\n'
+	printf -- '\t-h      - help: display this cruft\n'
+	printf -- '\t-l LOG  - log: log output to file path LOG (default: $CMD-$DATE.out)\n'
+	printf -- '\t-s      - signal: forward SIGINT/SIGHUP signals (do not use `nohup`)\n'
+	printf -- '\t-t      - trace: echo and run all shell commands or die (set -ex)\n'
+	printf -- '\t-T      - strace: run CMD under strace (also sets -t: trace) \n'
+	printf -- '\t-v      - verbose: do not hide any output or errors from CMD\n'
+	printf -- '\t--      - end-of-args: all flags following will be passed to CMD\n'
+	printf -- '\n'
+	eval $exit_usehlp
+	exit
+}
+
+timestamp() { date +'%Y%m%d-%H%M%S'; }
+
+doexec=
+shopts=
+tracer=
+chgdir=
+outlog=
+parse=1
+
+cmd=
+args=() # remaining command-line args after removing parsed options
+
+# parse command line arguments for any single-character flags. these
+# may be given individually or combined (e.g., "-v -f" == "-fv"), in
+# any order. arguments without leading hyphen are retained in $args,
+# and passed on to the given CMD verbatim.
+while test $# -gt 0
+do
+	if [[ -n $parse ]]
+	then
+		if [[ "$1" == "--" ]]
+		then 
+			unset -v parse
+
+		elif [[ "$1" == -* ]]
+		then
+			while read -re -n1 c
+			do
+				case "$c" in
+				(a|A) # append: append to log file instead of overwriting
+					append=">>"
+					;;
+				(c|C) # chdir: change dir to DIR before running CMD
+					shift
+					chgdir=$1
+					;;
+				(d|D) # dry-run: echo commands to be run
+					doexec=$noexec
+					;;
+				(f|F) # foreground: launch CMD as a foreground job
+					unset -v jobctl sigmsk silent
+					;;
+				(h|H) # help: print available flags
+					usage
+					;;
+				(l|L) # log: log output to file path LOG (default: $CMD-$DATE.out)
+					shift
+					outlog=$1
+					;;
+				(s|S) # signal: forward SIGINT/SIGHUP signals
+					unset -v sigmsk
+					;;
+				(t) # trace: echo and run all shell commands or die (set -ex)
+					shopts=${setopt}
+					;;
+				(T) # strace: run CMD under strace (also sets -t: trace)
+					unset -v jobctl sigmsk silent
+					tracer=$strace
+					;;
+				(v|V) # verbose: do not hide any output or errors
+					unset -v silent
+					;;
+				(*)
+					echo "unrecognized flag: -${c}" >&2
+					;;
+				esac
+			done < <( printf -- '%s' "$1" | sed -E 's/^-+//' )
+		else
+			unset -v parse
+		fi
+	fi
+
+	if [[ -z $parse ]]
+	then
+		if [[ -z $cmd ]]
+		then
+			cmd=$1
+		else
+			args=( "${args[@]}" "$1" )
+		fi
+	fi
+	shift
+
+done
+
+[[ -n $shopts ]] && set -${shopts}
+
+if [[ -n $cmd ]]
+then
+
+	if [[ -z $silent ]] && [[ -n $sigmsk ]]
+	then
+		# try to grab only the first alphanumeric word from $cmd
+		#base=$( printf -- '%s' "$cmd" | sed -E 's/([a-z]\S*).*/\1/' )
+		base=$( c=( $cmd ); echo "${c[0]}" )
+		output=$( printf -- '%s_%s.out' "$base" "$( timestamp )" )
+		if [[ -n $outlog ]]
+		then
+			outlog=$( realpath -mq "$outlog" )
+			if [[ -d $outlog ]]
+			then
+				output="$outlog/$output"
+			else
+				mkdir -p "${outlog%/*}"
+				output=$outlog
+			fi
+		fi
+		silent="$append'${output}' 2>&1"
+
+		printf -- 'interrupts masked, redirecting output to: %s\n' "$output"
+		printf -- '(note: use -sv or -f to print to stdout)\n'
+	fi
+
+	[[ -n $chgdir ]] && eval "pushd '$chgdir' $silent"
+
+	# forward any arguments passed to this script
+	$doexec eval "$tracer $sigmsk $cmd ${args[@]} $silent $jobctl"
+	retval=$?
+
+	[[ -n $chgdir ]] && eval "popd $silent"
+
+else
+	echo "no command given (see -h)" >&2
+	eval "$exit_noexec"
+	retval=$?
+fi
+
+( exit $retval )
