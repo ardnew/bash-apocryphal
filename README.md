@@ -13,6 +13,7 @@ Most scripts accept both forms of input, as either command-line arguments or rea
 |[`elapsed`](bin/elapsed)|`elapsed` formats the given number of seconds using the given date-time format. If no date-time format is given, uses a default format.|
 |[`escape`](bin/escape)|`escape` prints the given arguments in a quoted format that can be reused as input to other bash commands.|
 |[`fprintf`](bin/fprintf)|`fprintf` is identical to `printf(1)`, except the first argument is a filepath to write to (append to file with flag `-a`). Useful when file redirection can be tricky or cumbersome (e.g., `xargs`, `find -exec`, etc.)|
+|[`ipvalid`](bin/ipvalid)|`ipvalid` exits with a non-zero status if any given string is not a valid IPv4 address. Input may be given as command-line arguments or via `stdin`.|
 |[`joinstr`](bin/joinstr)|`joinstr` prints all arguments following the first, delimited by the first. Nothing is printed if fewer than 2 arguments are given, and only the second argument is printed if exactly 2 are given.|
 |[`prepath`](bin/prepath)|`prepath` echoes the `:`-delimited path variable with given name, prepended with each path in the given `:`-delimited list(s) of paths, removing each from its original location if it existed. Used to change the priority of directories in a path list.|
 |[`relpath`](bin/relpath)|`relpath` constructs a relative path from the first argument to the second. If only one path is given, the first argument is assumed to be `$PWD`.|
